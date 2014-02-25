@@ -3,6 +3,7 @@
 # password store management tool
 
 # Copyright (c) 2008, 2009 Peter Palfrader <peter@palfrader.org>
+# Copyright (c) 2014 Fastly
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -49,6 +50,11 @@ class GnuPG
   @@my_keys = nil
   @@my_fprs = nil
   @@keyid_fpr_mapping = {}
+  @@extra_args = []
+
+  def GnuPG.extra_args=(val)
+    @@extra_args = val
+  end
 
   def GnuPG.readwrite3(intxt, infd, stdoutfd, stderrfd, statusfd=nil)
     outtxt, stderrtxt, statustxt = ''
@@ -93,7 +99,7 @@ class GnuPG
       STDERR.reopen(errW)
       begin
         if do_status
-          exec(cmd, "--status-fd=#{statW.fileno}",  *args)
+          exec(cmd, "--status-fd=#{statW.fileno}", *@@extra_args, *args)
         else
           exec(cmd, *args)
         end
@@ -228,17 +234,22 @@ def read_input(query, default_yes=true)
 end
 
 class GroupConfig
-  def initialize
+  def initialize(dirname=".", trusted_users=nil)
+    @dirname = dirname
+    if trusted_users
+      @trusted_users = trusted_users
+    else
+      @trusted_users = ENV['HOME']+'/.pws-trusted-users'
+    end
     parse_file
     expand_groups
   end
 
   def verify(content)
     begin
-      f = File.open(ENV['HOME']+'/.pws-trusted-users')
+      f = File.open(@trusted_users)
     rescue Exception => e
-      STDERR.puts e
-      exit(1)
+      raise e
     end
 
     trusted = []
@@ -270,17 +281,15 @@ class GroupConfig
       STDERR.puts stderrtxt
       STDERR.puts "and via statusfd:"
       STDERR.puts statustxt
-      exit(1)
+      raise "Not goodsig"
     end
 
     if not trusted.include?(validsig)
-      STDERR.puts ".users file is signed by #{validsig} which is not in ~/.pws-trusted-users"
-      exit(1)
+      raise ".users file is signed by #{validsig} which is not in #{@trusted_users}"
     end
 
     if not exitstatus==0
-      STDERR.puts "gpg verify failed for .users file"
-      exit(1)
+      raise "gpg verify failed for .users file"
     end
 
     return outtxt
@@ -288,10 +297,9 @@ class GroupConfig
 
   def parse_file
     begin
-      f = File.open('.users')
+      f = File.open(File.join(@dirname, '.users'))
     rescue Exception => e
-      STDERR.puts e
-      exit(1)
+      raise e
     end
 
     users = f.read
@@ -356,7 +364,7 @@ class GroupConfig
       had_progress = false
       all_expanded = true
       @groups.each_pair do |groupname, group|
-        group['keys'] = [] unless group['keys'] 
+        group['keys'] = [] unless group['keys']
 
         still_contains_groups = false
         group['members_to_do'].clone.each do |member|
@@ -533,8 +541,8 @@ class EncryptedData
 end
 
 class EncryptedFile < EncryptedData
-  def initialize(filename, new=false)
-    @groupconfig = GroupConfig.new
+  def initialize(filename, new=false, trusted_file=nil)
+    @groupconfig = GroupConfig.new(dirname=File.dirname(filename), trusted_users=trusted_file)
     @new = new
     if @new
       @readers = []
@@ -986,7 +994,9 @@ def parse_command
   end
 end
 
-parse_command
+if __FILE__ == $0
+  parse_command
+end
 
 # vim:set shiftwidth=2:
 # vim:set et:
