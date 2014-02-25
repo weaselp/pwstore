@@ -3,6 +3,7 @@
 # password store management tool
 
 # Copyright (c) 2008, 2009 Peter Palfrader <peter@palfrader.org>
+# Copyright (c) 2014 Fastly
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
