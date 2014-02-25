@@ -228,14 +228,20 @@ def read_input(query, default_yes=true)
 end
 
 class GroupConfig
-  def initialize
+  def initialize(dirname=".", trusted_users=nil)
+    @dirname = dirname
+    if trusted_users
+      @trusted_users = trusted_users
+    else
+      @trusted_users = ENV['HOME']+'/.pws-trusted-users'
+    end
     parse_file
     expand_groups
   end
 
   def verify(content)
     begin
-      f = File.open(ENV['HOME']+'/.pws-trusted-users')
+      f = File.open(@trusted_users)
     rescue Exception => e
       STDERR.puts e
       exit(1)
@@ -274,8 +280,7 @@ class GroupConfig
     end
 
     if not trusted.include?(validsig)
-      STDERR.puts ".users file is signed by #{validsig} which is not in ~/.pws-trusted-users"
-      exit(1)
+      raise ".users file is signed by #{validsig} which is not in #{@trusted_users}"
     end
 
     if not exitstatus==0
@@ -533,8 +538,8 @@ class EncryptedData
 end
 
 class EncryptedFile < EncryptedData
-  def initialize(filename, new=false)
-    @groupconfig = GroupConfig.new
+  def initialize(filename, new=false, trusted_file=nil)
+    @groupconfig = GroupConfig.new(dirname=File.dirname(filename), trusted_users=trusted_file)
     @new = new
     if @new
       @readers = []
