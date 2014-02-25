@@ -986,7 +986,9 @@ def parse_command
   end
 end
 
-parse_command
+if __FILE__ == $0
+  parse_command
+end
 
 # vim:set shiftwidth=2:
 # vim:set et:
