@@ -364,7 +364,7 @@ class GroupConfig
       had_progress = false
       all_expanded = true
       @groups.each_pair do |groupname, group|
-        group['keys'] = [] unless group['keys'] 
+        group['keys'] = [] unless group['keys']
 
         still_contains_groups = false
         group['members_to_do'].clone.each do |member|
