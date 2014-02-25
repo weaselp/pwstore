@@ -49,6 +49,11 @@ class GnuPG
   @@my_keys = nil
   @@my_fprs = nil
   @@keyid_fpr_mapping = {}
+  @@extra_args = []
+
+  def GnuPG.extra_args=(val)
+    @@extra_args = val
+  end
 
   def GnuPG.readwrite3(intxt, infd, stdoutfd, stderrfd, statusfd=nil)
     outtxt, stderrtxt, statustxt = ''
@@ -93,7 +98,7 @@ class GnuPG
       STDERR.reopen(errW)
       begin
         if do_status
-          exec(cmd, "--status-fd=#{statW.fileno}",  *args)
+          exec(cmd, "--status-fd=#{statW.fileno}", *@@extra_args, *args)
         else
           exec(cmd, *args)
         end
