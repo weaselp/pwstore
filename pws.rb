@@ -298,7 +298,7 @@ class GroupConfig
 
   def parse_file
     begin
-      f = File.open('.users')
+      f = File.open(File.join(@dirname, '.users'))
     rescue Exception => e
       STDERR.puts e
       exit(1)
