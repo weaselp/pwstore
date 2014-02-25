@@ -248,8 +248,7 @@ class GroupConfig
     begin
       f = File.open(@trusted_users)
     rescue Exception => e
-      STDERR.puts e
-      exit(1)
+      raise e
     end
 
     trusted = []
@@ -281,7 +280,7 @@ class GroupConfig
       STDERR.puts stderrtxt
       STDERR.puts "and via statusfd:"
       STDERR.puts statustxt
-      exit(1)
+      raise "Not goodsig"
     end
 
     if not trusted.include?(validsig)
@@ -289,8 +288,7 @@ class GroupConfig
     end
 
     if not exitstatus==0
-      STDERR.puts "gpg verify failed for .users file"
-      exit(1)
+      raise "gpg verify failed for .users file"
     end
 
     return outtxt
@@ -300,8 +298,7 @@ class GroupConfig
     begin
       f = File.open(File.join(@dirname, '.users'))
     rescue Exception => e
-      STDERR.puts e
-      exit(1)
+      raise e
     end
 
     users = f.read
