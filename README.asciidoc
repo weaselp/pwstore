@@ -102,5 +102,4 @@ update/initialize this keyring.
 
 AUTHOR
 ------
-Peter Palfrader <peter@palfrader.org>
-
+Peter Palfrader <peter@palfrader.org>, Tollef Fog Heen <tfheen@err.no>
