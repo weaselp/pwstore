@@ -1014,7 +1014,12 @@ def parse_command
 end
 
 if __FILE__ == $0
-  parse_command
+  begin
+    parse_command
+  rescue RuntimeError => e
+    STDERR.puts e.message
+    exit(1)
+  end
 end
 
 # vim:set shiftwidth=2:
