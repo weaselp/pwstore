@@ -35,7 +35,7 @@ Lines starting with a # are comments and thus get ignored.
 --------------------------------
 % cat .users
 # This file needs to be gpg signed by a key whose fingerprint
-# is listed in ~/.pws-trusted-users
+# is listed in ~/.pws.yaml
 
 formorer   = 6E3966C1E1D15DB973D05B491E45F8CA9DE23B16
 weasel     = 25FC1614B8F87B52FF2F99B962AF4031C82E0039
@@ -56,18 +56,22 @@ unauthorized tampering with the .users file - for tricking somebody to
 re-encrypt data to the wrong key - the .users file needs to be
 PGP-clearsigned with a key from a whitelist.
 
-This whitelist lives in ~/.pws-trusted-users, and simply takes one
-key fingerprint per line:
+This whitelist lives in ~/.pws.yaml under the trusted_users key and
+then under the directory name.  A sample file looks like:
 
 ---------------------------------
-% cat ~/.pws-trusted-users
-#formorer
-6E3966C1E1D15DB973D05B491E45F8CA9DE23B16
+aliases:
+  debian:
+    - &tfheen   A28411A596193171331802C0B65A4871CA19D717
+    - &weasel   25FC1614B8F87B52FF2F99B962AF4031C82E0039
+
+trusted_users:
+  "~/.pws":
+   - *tfheen
+  "~/debian/dsa-passwords":
+   - *tfheen
+   - *weasel
 ---------------------------------
-
-Currently this whitelist is the same for any pws repositories a user
-might have.  A patch to remove this limitation would be nice.
-
 
 adding a new file
 -----------------

@@ -35,6 +35,7 @@ GNUPG = "/usr/bin/gpg"
 GROUP_PATTERN = "@[a-zA-Z0-9-]+"
 USER_PATTERN = "[a-zA-Z0-9:-]+"
 $program_name = File.basename($0, '.*')
+CONFIG_FILE = ENV['HOME']+ "/.pws.yaml"
 
 $editor = ENV['EDITOR']
 if $editor == nil
@@ -237,17 +238,31 @@ class GroupConfig
   def initialize(dirname=".", trusted_users=nil)
     @dirname = dirname
     if trusted_users
-      @trusted_users = trusted_users
+      @trusted_users = load_trusted_users(trusted_users)
+    elsif FileTest.exists?(CONFIG_FILE)
+      t = {}
+      begin
+        yaml = YAML::load_file(CONFIG_FILE)
+        yaml["trusted_users"].each do |k,v|
+            t[File.expand_path(k)] = v
+        end
+        @trusted_users = t[File.expand_path(dirname)]
+        if @trusted_users.nil?
+          raise ("Could not find #{File.expand_path(dirname)} in configuration file #{CONFIG_FILE}")
+        end
+      rescue Psych::SyntaxError, ArgumentError => e
+        raise("Could not parse YAML: #{e.message}")
+      end
     else
-      @trusted_users = ENV['HOME']+'/.pws-trusted-users'
+      @trusted_users = load_trusted_users(ENV['HOME']+'/.pws-trusted-users')
     end
     parse_file
     expand_groups
   end
 
-  def verify(content)
+  def load_trusted_users(trusted_users_file)
     begin
-      f = File.open(@trusted_users)
+      f = File.open(trusted_users_file)
     rescue Exception => e
       raise e
     end
@@ -260,6 +275,10 @@ class GroupConfig
 
       trusted.push line
     end
+    trusted
+  end
+
+  def verify(content)
 
     args = []
     args.push "--keyring=./.keyring" if FileTest.exists?(".keyring")
@@ -284,7 +303,7 @@ class GroupConfig
       raise "Not goodsig"
     end
 
-    if not trusted.include?(validsig)
+    if not @trusted_users.include?(validsig)
       raise ".users file is signed by #{validsig} which is not in #{@trusted_users}"
     end
 
