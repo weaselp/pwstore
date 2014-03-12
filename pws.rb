@@ -238,7 +238,8 @@ class GroupConfig
   def initialize(dirname=".", trusted_users=nil)
     @dirname = dirname
     if trusted_users
-      @trusted_users = load_trusted_users(trusted_users)
+      @trusted_users_source = trusted_users
+      load_deprecated_trusted_users()
     elsif FileTest.exists?(CONFIG_FILE)
       t = {}
       begin
@@ -246,6 +247,7 @@ class GroupConfig
         yaml["trusted_users"].each do |k,v|
             t[File.expand_path(k)] = v
         end
+        @trusted_users_source = CONFIG_FILE
         @trusted_users = t[File.expand_path(dirname)]
         if @trusted_users.nil?
           raise ("Could not find #{File.expand_path(dirname)} in configuration file #{CONFIG_FILE}")
@@ -254,15 +256,16 @@ class GroupConfig
         raise("Could not parse YAML: #{e.message}")
       end
     else
-      @trusted_users = load_trusted_users(ENV['HOME']+'/.pws-trusted-users')
+      @trusted_users_source = ENV['HOME']+'/.pws-trusted-users'
+      load_deprecated_trusted_users()
     end
     parse_file
     expand_groups
   end
 
-  def load_trusted_users(trusted_users_file)
+  def load_deprecated_trusted_users()
     begin
-      f = File.open(trusted_users_file)
+      f = File.open(@trusted_users_source)
     rescue Exception => e
       raise e
     end
@@ -275,11 +278,10 @@ class GroupConfig
 
       trusted.push line
     end
-    trusted
+    @trusted_users = trusted
   end
 
   def verify(content)
-
     args = []
     args.push "--keyring=./.keyring" if FileTest.exists?(".keyring")
     (outtxt, stderrtxt, statustxt, exitstatus) = GnuPG.gpgcall(content, args)
@@ -304,7 +306,7 @@ class GroupConfig
     end
 
     if not @trusted_users.include?(validsig)
-      raise ".users file is signed by #{validsig} which is not in #{@trusted_users}"
+      raise ".users file is signed by #{validsig} which is not in #{@trusted_users_source}"
     end
 
     if not exitstatus==0
