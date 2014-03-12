@@ -100,7 +100,7 @@ class GnuPG
       STDERR.reopen(errW)
       begin
         if do_status
-          exec(cmd, "--status-fd=#{statW.fileno}", *@@extra_args, *args)
+          exec(cmd, "--status-fd=#{statW.fileno}", *(@@extra_args + args))
         else
           exec(cmd, *args)
         end
