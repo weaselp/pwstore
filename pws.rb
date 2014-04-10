@@ -98,11 +98,17 @@ class GnuPG
       STDIN.reopen(inR)
       STDOUT.reopen(outW)
       STDERR.reopen(errW)
+      fds = {
+        STDIN=>inR,
+        STDOUT=>outW,
+        STDERR=>errW,
+        statW.fileno=>statW,
+      }
       begin
         if do_status
-          exec(cmd, "--status-fd=#{statW.fileno}", *(@@extra_args + args))
+          exec(cmd, "--status-fd=#{statW.fileno}", *(@@extra_args + args), fds)
         else
-          exec(cmd, *args)
+          exec(cmd, *(@@extra_args + args), fds)
         end
       rescue Exception => e
         outW.puts("[PWSEXECERROR]: #{e}")
