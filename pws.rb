@@ -891,7 +891,7 @@ class KeyringUpdater
       cmd << "--recv-keys"
       cmd << keyid
       puts "Fetching key for #{uid}"
-      (outtxt, stderrtxt, statustxt) = GnuPG.gpgcall('', cmd)
+      (outtxt, stderrtxt, statustxt, ecode) = GnuPG.gpgcall('', cmd)
       unless (statustxt =~ /^\[GNUPG:\] IMPORT_OK /)
         STDERR.puts "Warning: did not find IMPORT_OK token in status output"
         STDERR.puts "gpg exited with exit code #{ecode})"
