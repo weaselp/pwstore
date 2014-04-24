@@ -102,10 +102,10 @@ class GnuPG
         STDIN=>inR,
         STDOUT=>outW,
         STDERR=>errW,
-        statW.fileno=>statW,
       }
       begin
         if do_status
+          fds[statW.fileno] = statW
           exec(cmd, "--status-fd=#{statW.fileno}", *(@@extra_args + args), fds)
         else
           exec(cmd, *(@@extra_args + args), fds)
