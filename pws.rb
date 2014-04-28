@@ -789,8 +789,10 @@ class Reencrypt < Ed
     io.puts "Reencrypts the file if the user list or keys changed"
     exit(code)
   end
+  def do_edit(content)
+    return content
+  end
   def initialize()
-    $editor = '/bin/true'
     super
   end
 end
