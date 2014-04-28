@@ -671,6 +671,45 @@ class Ed
     exit(code)
   end
 
+  def do_edit(content)
+    oldsize = content.length
+
+    tempfile = Tempfile.open('pws')
+    tempfile.puts content
+    tempfile.flush
+    system($editor, tempfile.path)
+    status = $?
+    throw "Process has not exited!?" unless status.exited?
+    unless status.exitstatus == 0
+      proceed = read_input("Warning: Editor did not exit successfully (exit code #{status.exitstatus}.  Proceed?")
+      exit(0) unless proceed
+    end
+
+    # some editors do not write new content in place, but instead
+    # make a new file and more it in the old file's place.
+    begin
+      reopened = File.open(tempfile.path, "r+")
+    rescue Exception => e
+      STDERR.puts e
+      exit(1)
+    end
+    content = reopened.read
+
+    # zero the file, well, both of them.
+    newsize = content.length
+    clearsize = (newsize > oldsize) ? newsize : oldsize
+
+    [tempfile, reopened].each do |f|
+      f.seek(0, IO::SEEK_SET)
+      f.print "\0"*clearsize
+      f.fsync
+    end
+    reopened.close
+    tempfile.close(true)
+
+    return content
+  end
+
   def edit(filename)
     encrypted_file = EncryptedFile.new(filename, @new)
     if !@new and !encrypted_file.readable && !@force
@@ -683,39 +722,7 @@ class Ed
     content = encrypted_file.decrypt
     original_content = content
     while true
-      oldsize = content.length
-      tempfile = Tempfile.open('pws')
-      tempfile.puts content
-      tempfile.flush
-      system($editor, tempfile.path)
-      status = $?
-      throw "Process has not exited!?" unless status.exited?
-      unless status.exitstatus == 0
-        proceed = read_input("Warning: Editor did not exit successfully (exit code #{status.exitstatus}.  Proceed?")
-        exit(0) unless proceed
-      end
-
-      # some editors do not write new content in place, but instead
-      # make a new file and more it in the old file's place.
-      begin
-        reopened = File.open(tempfile.path, "r+")
-      rescue Exception => e
-        STDERR.puts e
-        exit(1)
-      end
-      content = reopened.read
-
-      # zero the file, well, both of them.
-      newsize = content.length
-      clearsize = (newsize > oldsize) ? newsize : oldsize
-
-      [tempfile, reopened].each do |f|
-        f.seek(0, IO::SEEK_SET)
-        f.print "\0"*clearsize
-        f.fsync
-      end
-      reopened.close
-      tempfile.close(true)
+      content = do_edit(content)
 
       if content.length == 0
         proceed = read_input("Warning: Content is now empty.  Proceed?")
