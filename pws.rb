@@ -786,7 +786,7 @@ class Reencrypt < Ed
   def help(parser, code=0, io=STDOUT)
     io.puts "Usage: #{$program_name} rc <filename>"
     io.puts parser.summarize
-    io.puts "Reencrypts the file (useful for changed user lists or keys)"
+    io.puts "Reencrypts the file if the user list or keys changed"
     exit(code)
   end
   def initialize()
