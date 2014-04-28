@@ -734,10 +734,12 @@ class Ed
 
       if (original_content == content)
         if (targets.sort == encrypted_to)
-          proceed = read_input("Nothing changed.  Re-encrypt anyway?", false)
-          exit(0) unless proceed
+          exit(0)
         else
-          STDERR.puts("Info: Content not changed but re-encrypting anyway because the list of keys changed")
+          if ! @reencrypt_on_change
+            STDERR.puts("Notice: list of keys changed -- re-encryption recommended.  Run #{$program_name} rc #{filename}")
+            exit(0)
+          end
         end
       end
 
@@ -746,7 +748,7 @@ class Ed
     end
   end
 
-  def initialize()
+  def initialize(reencrypt_on_change=false)
     ARGV.options do |opts|
       opts.on_tail("-h", "--help" , "Display this help screen") { help(opts) }
       opts.on_tail("-n", "--new" , "Edit new file") { |new| @new=new }
@@ -774,6 +776,8 @@ class Ed
       end
     end
 
+    @reencrypt_on_change = reencrypt_on_change
+
     dirname = File.dirname(filename)
     basename = File.basename(filename)
     Dir.chdir(dirname) {
@@ -793,7 +797,7 @@ class Reencrypt < Ed
     return content
   end
   def initialize()
-    super
+    super(true)
   end
 end
 
