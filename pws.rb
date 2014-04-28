@@ -46,6 +46,10 @@ if $editor == nil
     end
   end
 end
+if $editor == nil
+  STDERR.puts "Cannot find an editor"
+  exit(1)
+end
 
 class GnuPG
   @@my_keys = nil
