@@ -245,6 +245,8 @@ def read_input(query, default_yes=true)
 end
 
 class GroupConfig
+  attr_reader :dirname
+
   def initialize(dirname=".", trusted_users=nil)
     @dirname = dirname
     if trusted_users
@@ -258,9 +260,17 @@ class GroupConfig
             t[File.expand_path(k)] = v
         end
         @trusted_users_source = CONFIG_FILE
-        @trusted_users = t[File.expand_path(dirname)]
-        if @trusted_users.nil?
-          raise ("Could not find #{File.expand_path(dirname)} in configuration file #{CONFIG_FILE}")
+        d = File.expand_path(dirname)
+        while d != "/"
+          if t.include?(d)
+            @trusted_users = t[d]
+            @dirname = d
+            break
+          end
+          d = File.split(d)[0]
+        end
+        if @trusted_users.nil? or d == "/"
+          raise ("Could not find #{File.expand_path(dirname)} or its parents in configuration file #{CONFIG_FILE}")
         end
       rescue Psych::SyntaxError, ArgumentError => e
         raise("Could not parse YAML: #{e.message}")
@@ -293,7 +303,7 @@ class GroupConfig
 
   def verify(content)
     args = []
-    args.push "--keyring=./.keyring" if FileTest.exists?(".keyring")
+    args.push "--keyring=#{@dirname}/.keyring" if FileTest.exists?(File.join(@dirname, ".keyring"))
     (outtxt, stderrtxt, statustxt, exitstatus) = GnuPG.gpgcall(content, args)
     goodsig = false
     validsig = nil
@@ -478,9 +488,10 @@ class EncryptedData
   end
 
 
-  def initialize(encrypted_content, label)
+  def initialize(encrypted_content, label, keyring_directory = ".")
     @ignore_decrypt_errors = false
     @label = label
+    @keyring_dir = keyring_directory
 
     @encrypted_content = encrypted_content
     (outtxt, stderrtxt, statustxt) = GnuPG.gpgcall(@encrypted_content, %w{--with-colons --no-options --no-default-keyring --secret-keyring=/dev/null --keyring=/dev/null})
@@ -507,7 +518,7 @@ class EncryptedData
   def encrypt(content, recipients)
     args = recipients.collect{ |r| "--recipient=#{r}"}
     args.push "--trust-model=always"
-    args.push "--keyring=./.keyring" if FileTest.exists?(".keyring")
+    args.push "--keyring=#{@keyring_dir}/.keyring" if FileTest.exists?("#{@keyring_dir}/.keyring")
     args.push "--armor"
     args.push "--encrypt"
     (outtxt, stderrtxt, statustxt, exitstatus) = GnuPG.gpgcall(content, args)
@@ -589,7 +600,7 @@ class EncryptedFile < EncryptedData
     @filename = filename
 
     encrypted_content = File.read(filename)
-    super(encrypted_content, filename)
+    super(encrypted_content, filename, @groupconfig.dirname)
   end
 
   def write_back(content, targets)
