@@ -743,14 +743,12 @@ class Ed
       ok, targets = encrypted_file.determine_encryption_targets(content)
       next unless ok
 
-      if (original_content == content)
+      if (original_content == content && ! @reencrypt_on_change)
         if (targets.sort == encrypted_to)
           exit(0)
         else
-          if ! @reencrypt_on_change
-            STDERR.puts("Notice: list of keys changed -- re-encryption recommended.  Run #{$program_name} rc #{filename}")
-            exit(0)
-          end
+          STDERR.puts("Notice: list of keys changed -- re-encryption recommended.  Run #{$program_name} rc #{filename}")
+          exit(0)
         end
       end
 
@@ -801,7 +799,7 @@ class Reencrypt < Ed
   def help(parser, code=0, io=STDOUT)
     io.puts "Usage: #{$program_name} rc <filename>"
     io.puts parser.summarize
-    io.puts "Reencrypts the file if the user list or keys changed"
+    io.puts "Reencrypts the file"
     exit(code)
   end
   def do_edit(content)
