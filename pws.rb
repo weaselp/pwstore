@@ -488,8 +488,8 @@ class EncryptedData
   end
 
 
-  def initialize(encrypted_content, label, keyring_directory = ".")
-    @ignore_decrypt_errors = false
+  def initialize(encrypted_content, label, keyring_directory = ".", ignore_decrypt_errors = false)
+    @ignore_decrypt_errors = ignore_decrypt_errors
     @label = label
     @keyring_dir = keyring_directory
 
@@ -591,16 +591,15 @@ class EncryptedFile < EncryptedData
     end
 
     @filename = filename
-    unless FileTest.readable?(filename)
-      @accessible = false
-      return
-    end
-    @accessible = true
-
+    @accessible = FileTest.readable?(filename)
     @filename = filename
 
-    encrypted_content = File.read(filename)
-    super(encrypted_content, filename, @groupconfig.dirname)
+    if @accessible
+      encrypted_content = File.read(filename)
+    else
+      encrypted_content = nil
+    end
+    super(encrypted_content, filename, @groupconfig.dirname, @new)
   end
 
   def write_back(content, targets)
