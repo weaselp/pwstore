@@ -209,9 +209,9 @@ class GnuPG
       # and does not show elmo's fingerprint in a call like
       # gpg --with-colons --fast-list-mode --with-fingerprint --list-key D7C3F131AB2A91F5
       args = %w{--with-colons --with-fingerprint --list-keys}
-      args.push "--keyring=./.keyring" if FileTest.exists?(".keyring")
+      args.push("--keyring=./.keyring", "--no-default-keyring") if FileTest.exists?(".keyring")
       args.concat need_to_learn
-      (outtxt, stderrtxt, statustxt) = GnuPG.gpgcall('', args, true)
+      (outtxt, stderrtxt, statustxt) = GnuPG.gpgcall('', args)
 
       pub = nil
       fpr = nil
@@ -529,7 +529,7 @@ class EncryptedData
   def encrypt(content, recipients)
     args = recipients.collect{ |r| "--recipient=#{r}"}
     args.push "--trust-model=always"
-    args.push "--keyring=#{@keyring_dir}/.keyring" if FileTest.exists?("#{@keyring_dir}/.keyring")
+    args.push("--keyring=#{@keyring_dir}/.keyring", "--no-default-keyring") if FileTest.exists?("#{@keyring_dir}/.keyring")
     args.push "--armor"
     args.push "--encrypt"
     (outtxt, stderrtxt, statustxt, exitstatus) = GnuPG.gpgcall(content, args)
