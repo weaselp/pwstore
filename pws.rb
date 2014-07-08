@@ -132,7 +132,18 @@ class GnuPG
     wpid, status = Process.waitpid2 pid
     throw "Unexpected pid: #{pid} vs #{wpid}" unless pid == wpid
     throw "Process has not exited!?" unless status.exited?
-    throw "#{cmd} call did not exit sucessfully" if (require_success and status.exitstatus != 0)
+    if (require_success and status.exitstatus != 0)
+      STDERR.puts "#{cmd} call did not exit sucessfully."
+      STDERR.puts "output on stdout:"
+      STDERR.puts outtxt
+      STDERR.puts "output on stderr:"
+      STDERR.puts stderrtxt
+      if do_status
+        STDERR.puts "output on statusfd:"
+        STDERR.puts statustxt
+      end
+      exit(1)
+    end
     if m=/^\[PWSEXECERROR\]: (.*)/.match(outtxt) then
       STDERR.puts "Could not run GnuPG: #{m[1]}"
       exit(1)
