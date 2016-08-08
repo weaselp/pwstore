@@ -31,7 +31,7 @@ require 'tempfile'
 require 'yaml'
 Thread.abort_on_exception = true
 
-GNUPG = "/usr/bin/gpg"
+GNUPG = "gpg"
 GROUP_PATTERN = "@[a-zA-Z0-9-]+"
 USER_PATTERN = "[a-zA-Z0-9:-]+"
 $program_name = File.basename($0, '.*')
