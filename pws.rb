@@ -32,8 +32,8 @@ require 'yaml'
 Thread.abort_on_exception = true
 
 GNUPG = "gpg"
-GROUP_PATTERN = "@[a-zA-Z0-9-]+"
-USER_PATTERN = "[a-zA-Z0-9:-]+"
+GROUP_PATTERN = "@[a-zA-Z0-9_-]+"
+USER_PATTERN = "[a-zA-Z0-9:_-]+"
 $program_name = File.basename($0, '.*')
 CONFIG_FILE = ENV['HOME']+ "/.pws.yaml"
 
