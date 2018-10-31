@@ -219,7 +219,8 @@ class GnuPG
         parts = line.split(':')
         if (parts[0] == "pub")
           pub = parts[4]
-        elsif (parts[0] == "fpr")
+          fpr = nil
+        elsif (parts[0] == "fpr") and fpr.nil?
           fpr = parts[9]
           @@keyid_fpr_mapping[pub] = fpr
         elsif (parts[0] == "sub")
