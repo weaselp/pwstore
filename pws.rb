@@ -315,7 +315,10 @@ class GroupConfig
 
   def verify(content)
     args = []
-    args.push "--keyring=#{@dirname}/.keyring" if FileTest.exists?(File.join(@dirname, ".keyring"))
+    if FileTest.exists?(File.join(@dirname, ".keyring"))
+      args.push "--no-default-keyring"
+      args.push "--keyring=#{@dirname}/.keyring"
+    end
     (outtxt, stderrtxt, statustxt, exitstatus) = GnuPG.gpgcall(content, args)
     goodsig = false
     validsig = nil
