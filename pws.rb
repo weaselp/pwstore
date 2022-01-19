@@ -918,7 +918,7 @@ class KeyringUpdater
     end
     help(ARGV.options, 1, STDERR) if ARGV.length > 1
     keyserver = ARGV.shift
-    keyserver = 'keys.gnupg.net' unless keyserver
+    keyserver = 'keys.openpgp.org' unless keyserver
 
     groupconfig = GroupConfig.new
     users = groupconfig.get_users()
