@@ -267,7 +267,11 @@ class GroupConfig
     elsif FileTest.exists?(CONFIG_FILE)
       t = {}
       begin
-        yaml = YAML::load_file(CONFIG_FILE)
+        if Psych::VERSION > "4.0"
+          yaml = YAML::load_file(CONFIG_FILE, aliases: true)
+        else
+          yaml = YAML::load_file(CONFIG_FILE)
+        end
         yaml["trusted_users"].each do |k,v|
             t[File.expand_path(k)] = v
         end
