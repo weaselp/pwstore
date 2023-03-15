@@ -1030,11 +1030,12 @@ end
 
 def help(code=0, io=STDOUT)
   io.puts "Usage: #{$program_name} ed"
-  io.puts "       #{$program_name} rc"
-  io.puts "       #{$program_name} ls"
+  io.puts "       #{$program_name} get"
   io.puts "       #{$program_name} gitdiff"
-  io.puts "       #{$program_name} update-keyring"
   io.puts "       #{$program_name} help"
+  io.puts "       #{$program_name} ls"
+  io.puts "       #{$program_name} rc"
+  io.puts "       #{$program_name} update-keyring"
   io.puts "Call #{$program_name} <command> --help for additional options/parameters"
   exit(code)
 end
