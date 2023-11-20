@@ -267,7 +267,7 @@ class GroupConfig
     elsif FileTest.exists?(CONFIG_FILE)
       t = {}
       begin
-        yaml = YAML::load_file(CONFIG_FILE)
+        yaml = YAML::load_file(CONFIG_FILE, aliases: true)
         yaml["trusted_users"].each do |k,v|
             t[File.expand_path(k)] = v
         end
