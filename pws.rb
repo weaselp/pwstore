@@ -209,7 +209,7 @@ class GnuPG
       # and does not show elmo's fingerprint in a call like
       # gpg --with-colons --fast-list-mode --with-fingerprint --list-key D7C3F131AB2A91F5
       args = %w{--with-colons --with-fingerprint --list-keys}
-      args.push("--keyring=./.keyring", "--no-default-keyring") if FileTest.exists?(".keyring")
+      args.push("--keyring=./.keyring", "--no-default-keyring") if FileTest.exist?(".keyring")
       args.concat need_to_learn
       (outtxt, stderrtxt, statustxt) = GnuPG.gpgcall('', args)
 
@@ -264,7 +264,7 @@ class GroupConfig
     if trusted_users
       @trusted_users_source = trusted_users
       load_deprecated_trusted_users()
-    elsif FileTest.exists?(CONFIG_FILE)
+    elsif FileTest.exist?(CONFIG_FILE)
       t = {}
       begin
         yaml = YAML::load_file(CONFIG_FILE, aliases: true)
@@ -315,7 +315,7 @@ class GroupConfig
 
   def verify(content)
     args = []
-    if FileTest.exists?(File.join(@dirname, ".keyring"))
+    if FileTest.exist?(File.join(@dirname, ".keyring"))
       args.push "--no-default-keyring"
       args.push "--keyring=#{@dirname}/.keyring"
     end
@@ -533,7 +533,7 @@ class EncryptedData
   def encrypt(content, recipients)
     args = recipients.collect{ |r| "--recipient=#{r}"}
     args.push "--trust-model=always"
-    args.push("--keyring=#{@keyring_dir}/.keyring", "--no-default-keyring") if FileTest.exists?("#{@keyring_dir}/.keyring")
+    args.push("--keyring=#{@keyring_dir}/.keyring", "--no-default-keyring") if FileTest.exist?("#{@keyring_dir}/.keyring")
     args.push "--armor"
     args.push "--encrypt"
     (outtxt, stderrtxt, statustxt, exitstatus) = GnuPG.gpgcall(content, args)
@@ -645,7 +645,7 @@ class Ls
     end
     puts "#{dirname}:"
     Dir.chdir(dirname) do
-      unless FileTest.exists?(".users")
+      unless FileTest.exist?(".users")
         STDERR.puts "The .users file does not exists here.  This is not a password store, is it?"
         exit(1)
       end
@@ -782,12 +782,12 @@ class Ed
     filename = ARGV.shift
 
     if @new
-      if FileTest.exists?(filename)
+      if FileTest.exist?(filename)
         STDERR.puts "#{filename} does exist"
         exit(1)
       end
     else
-      if !FileTest.exists?(filename)
+      if !FileTest.exist?(filename)
         STDERR.puts "#{filename} does not exist"
         exit(1)
       elsif !FileTest.file?(filename)
@@ -884,7 +884,7 @@ class Get
     filename = ARGV.shift
     what = ARGV.shift
 
-    if !FileTest.exists?(filename)
+    if !FileTest.exist?(filename)
       STDERR.puts "#{filename} does not exist"
       exit(1)
     elsif !FileTest.file?(filename)
